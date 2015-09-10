@@ -55,3 +55,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+*.h5
+*.err
+*.log
+*.out
