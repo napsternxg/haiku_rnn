@@ -6,10 +6,7 @@ import numpy as np
 import random, sys
 
 '''
-    Example script to generate text from Nietzsche's writings.
-
-    At least 20 epochs are required before the generated text
-    starts sounding coherent.
+    Example script to generate haiku Text.
 
     It is recommended to run this script on GPU, as recurrent
     networks are quite computationally intensive.
@@ -72,13 +69,13 @@ def generate_from_model(model):
     start_index = random.randint(0, len(text) - maxlen - 1)
 
     for diversity in [0.2, 0.5, 1.0, 1.2]:
-        print()
-        print('----- diversity:', diversity)
+        print 
+        print '----- diversity:', diversity
 
         generated = ''
         sentence = text[start_index : start_index + maxlen]
         generated += sentence
-        print('----- Generating with seed: "' + sentence + '"')
+        print '----- Generating with seed: "' + sentence + '"'
         sys.stdout.write(generated)
     
         tot_lines = 0
@@ -103,13 +100,10 @@ def generate_from_model(model):
 
             sys.stdout.write(next_char)
             sys.stdout.flush()
-        print()
+        print ""
 
-"""
-for iteration in range(1, 20):
-    print()
-    print('-' * 50)
-    print('Iteration', iteration)
-    history = model.fit(X, y, batch_size=100, nb_epoch=20)
-    generate_from_model(model)
-"""
+if __name__ == "__main__":
+    for i in xrange(3):
+        history = model.fit(X, y, batch_size=10000, nb_epoch=20)
+        generate_from_model(model)
+
