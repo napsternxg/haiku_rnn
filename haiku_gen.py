@@ -25,14 +25,14 @@ char_indices = dict((c, i) for i, c in enumerate(chars))
 indices_char = dict((i, c) for i, c in enumerate(chars))
 
 # cut the text in semi-redundant sequences of maxlen characters
-maxlen = 20
-step = 1
+maxlen = 100
+step = 3
 sentences = []
 next_chars = []
-for t in text.splitlines():
-    for i in range(0, len(t) - maxlen, step):
-        sentences.append(text[i : i + maxlen])
-        next_chars.append(text[i + maxlen])
+for i in range(0, len(text) - maxlen, step):
+    sentences.append(text[i : i + maxlen])
+    next_chars.append(text[i + maxlen])
+
 print('nb sequences:', len(sentences))
 
 print('Vectorization...')
@@ -43,14 +43,18 @@ for i, sentence in enumerate(sentences):
         X[i, t, char_indices[char]] = 1
     y[i, char_indices[next_chars[i]]] = 1
 
+print "X.shape: %s, Y.shape: %s" % (X.shape, y.shape)
 
 # build the model: 2 stacked LSTM
 print('Build model...')
 model = Sequential()
-model.add(LSTM(len(chars), 512, return_sequences=True))
+model.add(LSTM(len(chars), 512, return_sequences=False))
 model.add(Dropout(0.2))
-model.add(LSTM(512, 512, return_sequences=False))
-model.add(Dropout(0.2))
+## Remove above 2 lines and replace by below 2 lines to make 2 layers LSTM.
+#model.add(LSTM(len(chars), 512, return_sequences=True))
+#model.add(Dropout(0.2))
+#model.add(LSTM(512, 512, return_sequences=False))
+#model.add(Dropout(0.2))
 model.add(Dense(512, len(chars)))
 model.add(Activation('softmax'))
 
@@ -65,15 +69,18 @@ def sample(a, temperature=1.0):
 
 # train the model, output generated text after each iteration
 
-def generate_from_model(model):
-    start_index = random.randint(0, len(text) - maxlen - 1)
-
-    for diversity in [0.2, 0.5, 1.0, 1.2]:
+def generate_from_model(model, begin_sent=None, diversity_l=[0.2, 0.5, 1.0, 1.2]):
+    if begin_sent is None:
+        start_index = random.randint(0, len(text) - maxlen - 1)
+    for diversity in diversity_l:
         print 
         print '----- diversity:', diversity
 
         generated = ''
-        sentence = text[start_index : start_index + maxlen]
+        if begin_sent is None:
+            sentence = text[start_index : start_index + maxlen]
+        else:
+            sentence = begin_sent
         generated += sentence
         print '----- Generating with seed: "' + sentence + '"'
         sys.stdout.write(generated)
@@ -94,7 +101,7 @@ def generate_from_model(model):
             
             tot_chars += 1
             generated += next_char
-            if next_char == '\n':
+            if next_char == '\t':
                 tot_lines += 1
             sentence = sentence[1:] + next_char
 
@@ -103,7 +110,10 @@ def generate_from_model(model):
         print ""
 
 if __name__ == "__main__":
-    for i in xrange(3):
-        history = model.fit(X, y, batch_size=10000, nb_epoch=20)
+    history = model.fit(X, y, batch_size=200, nb_epoch=20)
+    generate_from_model(model)
+    """
+    for i in xrange(1,4):
+        history = model.fit(X, y, batch_size=100*i, nb_epoch=20)
         generate_from_model(model)
-
+    """
